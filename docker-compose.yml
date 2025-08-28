@@ -1,0 +1,17 @@
+version: "3.8"
+services:
+  postgres:
+    image: postgres:15
+    container_name: e-library-db
+    restart: always
+    ports:
+      - "5433:5432" # 5433 → senin bilgisayarında çalışacak port
+    environment:
+      POSTGRES_USER: elib_user
+      POSTGRES_PASSWORD: elib_pass
+      POSTGRES_DB: elibrarydb
+    volumes:
+      - elibdata:/var/lib/postgresql/data
+
+volumes:
+  elibdata:

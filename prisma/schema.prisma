@@ -1,0 +1,143 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           Int           @id @default(autoincrement())
+  name         String
+  email        String        @unique
+  password     String
+  role         Role
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  userBooks    UserBook[]
+  userJournals UserJournal[]
+  userReports  UserReport[]
+  auditLogs    AuditLog[]
+  bookTargets  BookTarget[]
+}
+
+model Book {
+  id        Int       @id @default(autoincrement())
+  title     String
+  author    String
+  year      Int
+  category  String
+  isbn      String?
+  status    Status    @default(AVAILABLE)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  userBooks UserBook[]
+}
+
+model Journal {
+  id        Int       @id @default(autoincrement())
+  title     String
+  volume    Int
+  issue     Int
+  year      Int
+  issn      String?
+  status    Status    @default(AVAILABLE)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  userJournals UserJournal[]
+}
+
+model ResearchReport {
+  id          Int       @id @default(autoincrement())
+  title       String
+  author      String
+  supervisor  String?
+  institution String
+  year        Int
+  type        ReportType
+  status      Status    @default(AVAILABLE)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  userReports UserReport[]
+}
+
+model UserBook {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  bookId     Int
+  borrowDate DateTime @default(now())
+  dueDate    DateTime
+  returnDate DateTime?
+
+  user User @relation(fields: [userId], references: [id])
+  book Book @relation(fields: [bookId], references: [id])
+}
+
+model UserJournal {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  journalId  Int
+  borrowDate DateTime @default(now())
+  dueDate    DateTime
+  returnDate DateTime?
+
+  user    User    @relation(fields: [userId], references: [id])
+  journal Journal @relation(fields: [journalId], references: [id])
+}
+
+model UserReport {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  reportId   Int
+  borrowDate DateTime @default(now())
+  dueDate    DateTime
+  returnDate DateTime?
+
+  user   User           @relation(fields: [userId], references: [id])
+  report ResearchReport @relation(fields: [reportId], references: [id])
+}
+
+model BookTarget {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  year      Int
+  category  String?   // opsiyonel: belirli kategori için hedef
+  target    Int       // hedef kitap sayısı
+  progress  Int       @default(0) // şu ana kadar okunan
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model AuditLog {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  action    String
+  entity    String
+  details   String?
+  timestamp DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+enum Role {
+  ADMIN
+  LIBRARIAN
+  STUDENT
+}
+
+enum Status {
+  AVAILABLE
+  BORROWED
+}
+
+enum ReportType {
+  PHD
+  MASTER
+  BACHELOR
+}
